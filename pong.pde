@@ -1,4 +1,10 @@
-//current features: ball moves on only diagonals at 1 speed, bounces off all walls, paddle can be moved with mouse up and down. ball bounces off face of bumper predictably, but if bounces corner of bumper, the ball may bounce off at more of an angle
+//current features: ball moves on only diagonals at 1 speed, bounces off all walls, paddle can be moved with mouse up and down. ball bounces off face of bumper predictably, but if bounces corner of bumper, the ball may bounce off at more of an angle, ball spawns in random position, gameover screen if ball hits right wall
+
+//gameover screen
+boolean gameover;
+boolean randomballspawn;
+boolean bounceoffback;
+
 
 //ball variables
 float ballX;   //ball x position (top left corner)
@@ -25,6 +31,20 @@ void setup () {
   //info about paddle
   paddleX = width*5/6;
   paddleY = height*5/12;
+  
+  //put true to enable gameover screen
+  gameover = false;
+  
+  //put true to randomise ball starting position
+  randomballspawn = true;
+  
+  //put true to let ball bounce off back wall (may be slightly glitchy)
+  bounceoffback = false;
+  
+    //randomise starting position of ball
+  if (randomballspawn) {
+    ballY = random (0, height - width/60);
+  }
 }
 
 
@@ -32,7 +52,7 @@ void setup () {
 //active stuff (happens every frame)
 void draw() {
   
-  //black background (at start to cover old frame
+  //black background (at start to cover old frame)
   background (0);
   
   //draw ball
@@ -43,7 +63,7 @@ void draw() {
     ballX = ballX + width/320;
   }  
   //move ball left (if x-axis velocity is -ve)
-  if (ballVX < 0) { 
+  else if (ballVX < 0) { 
     ballX = ballX + -width/320;
   }  
 
@@ -52,26 +72,41 @@ void draw() {
     ballY = ballY + width/320;
   }  
   //move ball up (if y-axis velocity is -ve)
-  if (ballVY < 0) { 
+  else if (ballVY < 0) { 
     ballY = ballY + -width/320;
   }  
   
   //bounce off top
-  if (ballY < 2) { 
-    ballVY = 1;
+  if (ballY <= 0) { 
+    ballVY = ballVY * -1;
   }  
   //bounce off bottom
-  if (ballY + width/60> height) { 
-    ballVY = -1;
+  if (ballY + width/60 -1 >= height) { 
+    ballVY = ballVY * -1;
   }  
   
   //bounce off left
   if (ballX < 2) { 
-    ballVX = 1;
+    ballVX = ballVX * -1;
   }  
-  //bounce off right (will be changed to game over)
+  //if hits right wall, game over/bounce back/randomly respawn/respawn in middle
   if (ballX + width/60> width) { 
-    ballVX = -1;
+    if (gameover) {
+      background (0);
+      textSize (100);
+      text ("GAME OVER", 100, 100);
+    }
+    else if (bounceoffback) {
+      ballVX = ballVX * -1;
+    }
+    else if (randomballspawn) {
+      ballY = random (0, height - width/60);
+      ballX = width/2;
+    }
+    else {
+      ballX = width/2;
+      ballY = height/2;
+    }
   }  
   
   //draw paddle
@@ -83,7 +118,7 @@ void draw() {
   }
   
   //move paddle down
-  if (mouseY > paddleY + height/6) {
+  else if (mouseY > paddleY + height/6) {
     paddleY = paddleY + width/320;
   }
   
@@ -98,7 +133,7 @@ void draw() {
     }
   }
   
-  //bounce off top of paddle
+  //bounce off top corner of paddle
   if (ballX + width/60 -1 > paddleX) {
     if (ballX + width/60 -1 < paddleX + width/160) {
       if (ballY + width/60 -1 < paddleY + height/6 -1) {
@@ -112,7 +147,7 @@ void draw() {
     }
   }
   
-  //bounce off bottom of paddle
+  //bounce off bottom corner of paddle
   if (ballX + width/60 -1 > paddleX) {
     if (ballX + width/60 -1 < paddleX + width/160) {
       if (ballY > paddleY) {
@@ -121,6 +156,30 @@ void draw() {
             ballVX = -1;
             ballVY = +1;
           }
+        }
+      }
+    }
+  }
+  
+  //bounce off top of paddle
+  if (ballX < paddleX + width/160) {
+    if (ballX > paddleX) {
+      if (ballY + width/60 -1 > paddleY) {
+        if (ballY + width/60 -1 < paddleY + height/6 -1) {
+          ballVY = -1;
+        }
+      }
+    }
+  }
+
+      
+      
+  //bounce off bottom of paddle
+  if (ballX < paddleX + width/160) {
+    if (ballX > paddleX) {
+      if (ballY < paddleY + height/6 -1) {
+        if (ballY > paddleY) {
+          ballVY = +1;
         }
       }
     }

@@ -1,3 +1,5 @@
+//current features: ball moves on only diagonals at 1 speed, bounces off all walls, paddle can be moved with mouse up and down. ball bounces off face of bumper predictably, but if bounces corner of bumper, the ball may bounce off at more of an angle
+
 //ball variables
 float ballX;   //ball x position (top left corner)
 float ballY;   //ball y position (top left corner)

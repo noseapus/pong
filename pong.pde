@@ -1,9 +1,10 @@
-//current features: ball moves on only diagonals at 1 speed, bounces off all walls, paddle can be moved with mouse up and down. ball bounces off face of bumper predictably, but if bounces corner of bumper, the ball may bounce off at more of an angle, ball spawns in random position, gameover screen if ball hits right wall
+//current features: ball moves on only diagonals at 1 speed, bounces off all walls, paddle can be moved with mouse up and down. ball bounces off face of bumper predictably, but if bounces corner of bumper, the ball may bounce off at more of an angle, ball spawns in random position, gameover screen if ball hits right wall, with reset button
 
 //gameover screen
 boolean gameover;
 boolean randomballspawn;
 boolean bounceoffback;
+boolean gameisover;
 
 
 //ball variables
@@ -15,6 +16,8 @@ float ballVY;  //ball y-axis velocity (+ve is down)
 //paddle variables
 float paddleX;  //paddle x position (top left corner)
 float paddleY;  //paddle y position (top left corner)
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 //run at start of game
 void setup () {
@@ -33,7 +36,7 @@ void setup () {
   paddleY = height*5/12;
   
   //put true to enable gameover screen
-  gameover = false;
+  gameover = true;
   
   //put true to randomise ball starting position
   randomballspawn = true;
@@ -41,13 +44,16 @@ void setup () {
   //put true to let ball bounce off back wall (may be slightly glitchy)
   bounceoffback = false;
   
+  //put true to make game be over
+  gameisover = false;
+  
     //randomise starting position of ball
   if (randomballspawn) {
     ballY = random (0, height - width/60);
   }
 }
 
-
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 //active stuff (happens every frame)
 void draw() {
@@ -56,6 +62,7 @@ void draw() {
   background (0);
   
   //draw ball
+  fill (255, 255, 255);
   rect (ballX, ballY, width/60, width/60, width/240);
   
   //move ball right (if x-axis velocity is +ve)
@@ -92,9 +99,7 @@ void draw() {
   //if hits right wall, game over/bounce back/randomly respawn/respawn in middle
   if (ballX + width/60> width) { 
     if (gameover) {
-      background (0);
-      textSize (100);
-      text ("GAME OVER", 100, 100);
+      gameisover = true;
     }
     else if (bounceoffback) {
       ballVX = ballVX * -1;
@@ -123,65 +128,53 @@ void draw() {
   }
   
   //bounce off paddle when in middle
-  if (ballX + width/60 -1 > paddleX) {
-    if (ballX + width/60 -1 < paddleX + width/160) {
-      if (ballY > paddleY) {
-        if (ballY + width/60 -1 < paddleY + height/6 -1) {
-          ballVX = -1;
-        }
-      }
-    }
+  if (ballX + width/60 -1 > paddleX && ballX + width/60 -1 < paddleX + width/160 && ballY > paddleY && ballY + width/60 -1 < paddleY + height/6 -1) {
+    ballVX = -1;
   }
   
   //bounce off top corner of paddle
-  if (ballX + width/60 -1 > paddleX) {
-    if (ballX + width/60 -1 < paddleX + width/160) {
-      if (ballY + width/60 -1 < paddleY + height/6 -1) {
-        if (paddleY < ballY + width/60 -1) { 
-          if (ballY < paddleY) {
-            ballVX = -1;
-            ballVY = -1;
-          }
-        }
-      }
-    }
+  if (ballX + width/60 -1 > paddleX && ballX + width/60 -1 < paddleX + width/160 && ballY + width/60 -1 < paddleY + height/6 -1 && paddleY < ballY + width/60 -1 && ballY < paddleY) {
+    ballVX = -1;
+    ballVY = -1;
   }
   
   //bounce off bottom corner of paddle
-  if (ballX + width/60 -1 > paddleX) {
-    if (ballX + width/60 -1 < paddleX + width/160) {
-      if (ballY > paddleY) {
-        if (paddleY + height/6 -1 > ballY) { 
-          if (ballY + width/60 -1 > paddleY + height/6 -1) {
-            ballVX = -1;
-            ballVY = +1;
-          }
-        }
-      }
-    }
+  if (ballX + width/60 -1 > paddleX && ballX + width/60 -1 < paddleX + width/160 && ballY > paddleY && paddleY + height/6 -1 > ballY && ballY + width/60 -1 > paddleY + height/6 -1) {
+    ballVX = -1;
+    ballVY = +1;
   }
   
   //bounce off top of paddle
-  if (ballX < paddleX + width/160) {
-    if (ballX > paddleX) {
-      if (ballY + width/60 -1 > paddleY) {
-        if (ballY + width/60 -1 < paddleY + height/6 -1) {
-          ballVY = -1;
-        }
-      }
-    }
-  }
-
-      
+  if (ballX < paddleX + width/160 && ballX > paddleX && ballY + width/60 -1 > paddleY && ballY + width/60 -1 < paddleY + height/6 -1) {
+    ballVY = -1;
+  }     
       
   //bounce off bottom of paddle
-  if (ballX < paddleX + width/160) {
-    if (ballX > paddleX) {
-      if (ballY < paddleY + height/6 -1) {
-        if (ballY > paddleY) {
-          ballVY = +1;
-        }
+  if (ballX < paddleX + width/160 && ballX > paddleX && ballY < paddleY + height/6 -1 && ballY > paddleY) {
+    ballVY = +1;
+  }
+  
+  //game is over state
+  if (gameisover) {
+    background (0);
+    textSize (100);
+    fill (255, 255, 255);
+    text ("GAME OVER", 100, 100);
+    fill (255, 0, 255);
+    rect (100, 300, 500, 100);
+    fill (0, 0, 0);
+    text ("RESET", 150, 380);
+    if (mousePressed == true && mouseX >=100 && mouseX <= 600 && mouseY >= 300 && mouseY <= 400) {
+      gameisover = false;
+      if (randomballspawn) {
+        ballY = random (0, height - width/60);
+        ballX = width/2;
+      }
+      else {
+        ballX = width/2;
+        ballY = height/2;
       }
     }
   }
+    
 }

@@ -9,11 +9,13 @@ boolean framecounter;
 boolean mainmenu;
 boolean aimbot;
 boolean frameratechange;
-
+boolean cheatpage;
 
 //ball variables
 float ballX;   //ball x position (top left corner)
 float ballY;   //ball y position (top left corner)
+float ballwidth;  //width and height of ball
+float ballcorner;  //size of the rounding at the corner of the ball, also used for paddles.
 float startingballVX;   //speed ball starts at
 float startingballVY;   //speed ball starts at
 float ballVX;  //ball x-axis velocity (+ve is right)
@@ -24,6 +26,8 @@ float paddleX;  //paddle x position (top left corner)
 float paddleY;  //paddle y position (top left corner)
 float oppaddleX;  //opposing paddle x position (top left corner)
 float oppaddleY;  //opposing paddle y position (top left corner)
+float paddlewidth;  //width of both paddles
+float paddleheight;  //height of both paddles
 
 //main menu variables
 
@@ -40,7 +44,7 @@ float framerectY;
 float framerectwidth;
 float framerectheight;
 
-//resolution button variables (obseleted)
+//resolution button variables
 float restopY;
 float resbottomY;
 float resleftX;
@@ -50,6 +54,12 @@ float reswidth;
 float resheight;
 float resbutwidth;
 float resbutheight;
+
+//cheat button variables
+float cheatX;
+float cheatY;
+float cheatwidth;
+float cheatheight;
 
 //score
 int score;
@@ -69,12 +79,14 @@ void setup () {
   //fullScreen ();
 
   //framerate, adjust to speed up or down the game
-  framerate = 120;
+  framerate = 60;
   frameRate(framerate);
 
   //info about ball
   ballX = width/2;
   ballY = height/2;
+  ballwidth = width/60;
+  ballcorner = width/240;
   startingballVX = width/framerate/5.333;
   startingballVY = width/framerate/5.333;
   ballVX = startingballVX;
@@ -83,13 +95,15 @@ void setup () {
   //info about paddle
   paddleX = width*5/6;
   paddleY = height*5/12;
+  paddlewidth = width/60;
+  paddleheight = height/6;
   oppaddleX = width/6;
   oppaddleY = height*5/12;
 
   //info about start button
   startrectX = width/12;
   startrectY = height/3;
-  startrectwidth = width/3;
+  startrectwidth = width/2.75;
   startrectheight = height/5;
   butcorn = width/240;
 
@@ -99,7 +113,7 @@ void setup () {
   framerectwidth = startrectwidth;
   framerectheight = startrectheight;
 
-  //info about size buttons (obseleted)
+  //info about size buttons
   reswidth = startrectwidth;
   resheight = startrectheight;
   resbutwidth = reswidth*2/5;
@@ -109,6 +123,13 @@ void setup () {
   restopY = startrectY + startrectheight + height/6;
   resrightX = resleftX + reswidth - resbutwidth;
   resbottomY = restopY + resheight - resbutheight;
+
+  //info about cheat button
+  cheatX = framerectX;
+  cheatY = restopY;
+  cheatwidth = startrectwidth;
+  cheatheight = startrectheight;
+
 
   //put true to enable aimbot
   aimbot = false;
@@ -134,13 +155,15 @@ void setup () {
   //put true if frame rate is changing
   frameratechange = false;
 
+  //put true to start on cheat page
+  cheatpage = false;
 
   //starts score off at 0
   score = 0;
 
   //randomise starting position of ball
   if (randomballspawn) {
-    ballY = random (0, height - width/60);
+    ballY = random (0, height - ballwidth);
   }
 }
 
@@ -154,7 +177,7 @@ void draw() {
 
   //draw ball
   fill (255);
-  rect (ballX, ballY, width/60, width/60, width/240);
+  rect (ballX, ballY, ballwidth, ballwidth, ballcorner);
 
   //move ball x-axis
   ballX += ballVX;  
@@ -167,22 +190,22 @@ void draw() {
     ballVY = abs(ballVY);
   }  
   //bounce off bottom
-  if (ballY + width/60 -1 >= height) { 
+  if (ballY + ballwidth -1 >= height) { 
     ballVY = -abs(ballVY);
   }  
 
   //bounce off left
-  if (ballX < width/6 + width/60) { 
+  if (ballX < width/6 + ballwidth) { 
     ballVX = abs(ballVX);
   }  
   //if hits right wall, game over/bounce back/randomly respawn/respawn in middle
-  if (ballX + width/60> width) { 
+  if (ballX + ballwidth> width) { 
     if (gameover) {
       gameisover = true;
     } else if (bounceoffback) {
       ballVX = -abs(ballVX);
     } else if (randomballspawn) {
-      ballY = random (0, height - width/60);
+      ballY = random (0, height - ballwidth);
       ballX = width/2;
       ballVX = startingballVX;
       ballVY = startingballVY;
@@ -196,11 +219,11 @@ void draw() {
 
   //aimbot script
   if (aimbot) {
-    paddleY = ballY - height/12;
+    paddleY = ballY - paddleheight/2;
   }
 
   //draw paddle
-  rect (paddleX, paddleY, width/60, height/6, width/240);
+  rect (paddleX, paddleY, paddlewidth, paddleheight, ballcorner);
 
   //move paddle up
   if (mouseY < paddleY) {
@@ -208,53 +231,53 @@ void draw() {
   }
 
   //move paddle down
-  else if (mouseY > paddleY + height/6) {
+  else if (mouseY > paddleY + paddleheight) {
     paddleY = paddleY + width/framerate/4;
   }
 
   //bounce off paddle when in middle
-  if (ballX + width/60 -1 > paddleX && ballX + width/60 -1 < paddleX + width/160 && ballY > paddleY && ballY + width/60 -1 < paddleY + height/6 -1) {
+  if (ballX + ballwidth -1 > paddleX && ballX + ballwidth -1 < paddleX + paddlewidth && ballY > paddleY && ballY + ballwidth -1 < paddleY + paddleheight -1) {
     ballVX = -abs(ballVX);
     score++;
   }
 
   //bounce off top corner of paddle
-  if (ballX + width/60 -1 > paddleX && ballX + width/60 -1 < paddleX + width/160 && ballY + width/60 -1 < paddleY + height/6 -1 && paddleY < ballY + width/60 -1 && ballY < paddleY) {
+  if (ballX + ballwidth -1 > paddleX && ballX + ballwidth -1 < paddleX + paddlewidth && ballY + ballwidth -1 < paddleY + paddleheight -1 && paddleY < ballY + ballwidth -1 && ballY < paddleY) {
     ballVX = -abs(ballVX);
     ballVY = -abs(ballVY);
     score++;
   }
 
   //bounce off bottom corner of paddle
-  if (ballX + width/60 -1 > paddleX && ballX + width/60 -1 < paddleX + width/160 && ballY > paddleY && paddleY + height/6 -1 > ballY && ballY + width/60 -1 > paddleY + height/6 -1) {
+  if (ballX + ballwidth -1 > paddleX && ballX + ballwidth -1 < paddleX + paddlewidth && ballY > paddleY && paddleY + paddleheight -1 > ballY && ballY + ballwidth -1 > paddleY + paddleheight -1) {
     ballVX = -abs(ballVX);
     ballVY = abs(ballVY);
     score++;
   }
 
   //bounce off top of paddle
-  if (ballX < paddleX + width/160 && ballX > paddleX && ballY + width/60 -1 > paddleY && ballY + width/60 -1 < paddleY + height/6 -1) {
+  if (ballX < paddleX + paddlewidth && ballX > paddleX && ballY + ballwidth -1 > paddleY && ballY + ballwidth -1 < paddleY + paddleheight -1) {
     ballVY = -abs(ballVY);
   }     
 
   //bounce off bottom of paddle
-  if (ballX < paddleX + width/160 && ballX > paddleX && ballY < paddleY + height/6 -1 && ballY > paddleY) {
+  if (ballX < paddleX + paddlewidth && ballX > paddleX && ballY < paddleY + paddleheight -1 && ballY > paddleY) {
     ballVY = abs(ballVY);
   }
 
   //opposing paddle Y-level
-  oppaddleY = ballY + width/120 - height/12;
+  oppaddleY = ballY + ballwidth/2 - paddleheight/2;
 
   //make sure paddle does not leave screen
   if (oppaddleY < 0) {
     oppaddleY = 0;
-  } else if (oppaddleY + height/6 > height) {
-    oppaddleY = height - height/6;
+  } else if (oppaddleY + paddleheight > height) {
+    oppaddleY = height - paddleheight;
   }
 
   //draw opposition paddle
   fill (255, 255, 255);
-  rect (oppaddleX, oppaddleY, width/60, height/6, width/240);
+  rect (oppaddleX, oppaddleY, paddlewidth, paddleheight, ballcorner);
 
   //display score
   textSize (height/6);
@@ -262,8 +285,16 @@ void draw() {
   fill (255);
   text (score, width, 0);
 
-  ballVX *= 1.0001;
-  ballVY *= 1.0001;
+  if (aimbot) {
+    textSize (height/18);
+    textAlign (RIGHT, TOP);
+    fill (255);
+    text ("AIMBOT", width, height/6);
+  }
+
+
+  ballVX *= (1 + 0.0001*60/framerate);
+  ballVX *= (1 + 0.0001*60/framerate);
 
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////  G A M E   O V E R   S C R E E N  ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////  
 
@@ -304,9 +335,9 @@ void draw() {
   if (mainmenu) {
     background (0);
     textSize (height/6);
-    textAlign (LEFT, BOTTOM);
+    textAlign (CENTER, BOTTOM);
     fill (255);
-    text ("PONG", width/2 - width/8, height/6);
+    text ("PONG", width/2, height/6);
     gameisover = false;
 
     //start button
@@ -331,7 +362,7 @@ void draw() {
     textSize (height/14);
     text(frame, framerectX, framerectY, framerectwidth, framerectheight);
 
-    //size buttons (obselete)
+    //size buttons
     fill(255);
     rect (resleftX, restopY, resbutwidth, resbutheight, butcorn);
     rect (resrightX, restopY, resbutwidth, resbutheight, butcorn);
@@ -350,10 +381,53 @@ void draw() {
     text(teneighty, resleftX, resbottomY, resbutwidth, resbutheight);
     String fourteenforty = "240tick";
     text(fourteenforty, resrightX, resbottomY, resbutwidth, resbutheight);
+
+    //cheats button
+    fill (255);
+    rect (cheatX, cheatY, cheatwidth, cheatheight, butcorn);
+    textSize (height/6);
+    fill (0);
+    textAlign (CENTER, CENTER);
+    text ("CHEATS", cheatX + cheatwidth/2, cheatY + cheatheight/2.5);
   }
 
-  ///////////////////////////////////////////////////////////////////////////////////////////////////////////   E N D   O F   M A I N   M E N U   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////    
+  ///////////////////////////////////////////////////////////////////////////////////////////////////////////   C H E A T   P A G E     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////    
 
+  if (cheatpage) {
+    background (0);
+    textSize (height/6);
+    textAlign (CENTER, BOTTOM);
+    fill (255);
+    text ("CHEATS", width/2, height/6);
+    mainmenu = false;
+    gameisover = false;
+
+    //cheats button
+    fill (255);
+    rect (cheatX, cheatY, cheatwidth, cheatheight, butcorn);
+    String mainmenufromcheatpage = "MAIN MENU";
+    fill (0);
+    textAlign (CENTER, CENTER);
+    textSize (height/11);
+    text(mainmenufromcheatpage, cheatX, cheatY, cheatwidth, cheatheight);
+
+    //frame rate colour changing rectangle
+    if (aimbot) {
+      fill (20, 255, 20);
+    } else {
+      fill (255, 20, 20);
+    }
+    rect (framerectX, framerectY, framerectwidth, framerectheight, butcorn);
+
+    //frame rate text
+    String frame = "AIMBOT";
+    fill (0);
+    textAlign (CENTER, CENTER);
+    textSize (height/6);
+    text(frame, framerectX, framerectY, framerectwidth, framerectheight);
+  }
+
+  ///////////////////////////////////////////////////////////////////////////////////////////////////////////   E N D   O F   M A I N   M E N U   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   //frame rate displayed if enabled
   if (framecounter) {
     fill(255);
@@ -379,21 +453,36 @@ void mouseReleased () {
   //frame rate button
   if (mainmenu && mouseX >= framerectX && mouseX <= framerectX + framerectwidth && mouseY >= framerectY && mouseY <= framerectY + framerectheight) {
     framecounter = !framecounter;
+  } else if (cheatpage && mouseX >= framerectX && mouseX <= framerectX + framerectwidth && mouseY >= framerectY && mouseY <= framerectY + framerectheight) {
+    aimbot = !aimbot;
+  }
+
+  //cheats/main menu button
+  if (mainmenu && mouseX >= cheatX && mouseX <= cheatX + cheatwidth && mouseY >= cheatY && mouseY <= cheatY + cheatheight) {
+    cheatpage = true;
+    mainmenu = false;
+    gameisover = false;
+  } else if (cheatpage && mouseX >= cheatX && mouseX <= cheatX + cheatwidth && mouseY >= cheatY && mouseY <= cheatY + cheatheight) {
+    cheatpage = false;
+    mainmenu = true;
+    gameisover = false;
   }
 
   //main menu button
   if (gameisover && mouseX >= framerectX && mouseX <= framerectX + framerectwidth && mouseY >= framerectY && mouseY <= framerectY + framerectheight) {
     gameisover = false;
     mainmenu = true;
+    cheatpage = false;
   }
 
   //start button main menu and game over
   else if ((mainmenu || gameisover) && mouseX >= startrectX && mouseX <= startrectX + startrectwidth && mouseY >= startrectY && mouseY <= startrectY + startrectheight) {
     mainmenu = false;
     gameisover = false;
+    cheatpage = false;
     score = 0;
     if (randomballspawn) {
-      ballY = random (0, height - width/60);
+      ballY = random (0, height - ballwidth);
       ballX = width/2;
     } else {
       ballX = width/2;
@@ -403,7 +492,7 @@ void mouseReleased () {
     ballVY = startingballVY;
   }
 
-  //size buttons (obseleted)
+  //size buttons
   if (mainmenu) {
     if (mouseX >= resleftX && mouseX <= resleftX + resbutwidth && mouseY >= restopY && mouseY <= restopY + resbutheight) {
       framerate = 30;

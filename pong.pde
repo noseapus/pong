@@ -61,6 +61,12 @@ float cheatY;
 float cheatwidth;
 float cheatheight;
 
+//die button variables
+float dieX;
+float dieY;
+float diewidth;
+float dieheight;
+
 //score
 int score;
 
@@ -129,6 +135,12 @@ void setup () {
   cheatY = restopY;
   cheatwidth = startrectwidth;
   cheatheight = startrectheight;
+  
+  //info about die button
+  dieX = width*7/8;
+  dieY = height*3/12;
+  diewidth = width/8;
+  dieheight = height/12;
 
 
   //put true to enable aimbot
@@ -200,10 +212,10 @@ void draw() {
   }  
   //if hits right wall, game over/bounce back/randomly respawn/respawn in middle
   if (ballX + ballwidth> width) { 
-    if (gameover) {
-      gameisover = true;
-    } else if (bounceoffback) {
+    if (bounceoffback) {
       ballVX = -abs(ballVX);
+    } else if (gameover) {
+      gameisover = true;
     } else if (randomballspawn) {
       ballY = random (0, height - ballwidth);
       ballX = width/2;
@@ -291,7 +303,17 @@ void draw() {
     fill (255);
     text ("AIMBOT", width, height/6);
   }
-
+  
+  //die button
+  if (bounceoffback || aimbot) {
+    fill (255);
+    rect (dieX, dieY, diewidth, dieheight, butcorn);
+    String dietext = "CLICK TO DIE";
+    fill (0);
+    textAlign (CENTER, CENTER);
+    textSize (height/32);
+    text(dietext, dieX, dieY, diewidth, dieheight);
+  }
 
   ballVX *= (1 + 0.0001*60/framerate);
   ballVX *= (1 + 0.0001*60/framerate);
@@ -362,26 +384,6 @@ void draw() {
     textSize (height/14);
     text(frame, framerectX, framerectY, framerectwidth, framerectheight);
 
-    //size buttons
-    fill(255);
-    rect (resleftX, restopY, resbutwidth, resbutheight, butcorn);
-    rect (resrightX, restopY, resbutwidth, resbutheight, butcorn);
-    rect (resleftX, resbottomY, resbutwidth, resbutheight, butcorn);
-    rect (resrightX, resbottomY, resbutwidth, resbutheight, butcorn);
-
-    fill (0);
-    textAlign (CENTER, CENTER);
-    textSize (height/17);
-
-    String threesixty = "30tick";
-    text(threesixty, resleftX, restopY, resbutwidth, resbutheight);
-    String seventwenty = "60tick";
-    text(seventwenty, resrightX, restopY, resbutwidth, resbutheight);
-    String teneighty = "120tick";
-    text(teneighty, resleftX, resbottomY, resbutwidth, resbutheight);
-    String fourteenforty = "240tick";
-    text(fourteenforty, resrightX, resbottomY, resbutwidth, resbutheight);
-
     //cheats button
     fill (255);
     rect (cheatX, cheatY, cheatwidth, cheatheight, butcorn);
@@ -411,7 +413,7 @@ void draw() {
     textSize (height/11);
     text(mainmenufromcheatpage, cheatX, cheatY, cheatwidth, cheatheight);
 
-    //frame rate colour changing rectangle
+    //aimbot colour changing rectangle
     if (aimbot) {
       fill (20, 255, 20);
     } else {
@@ -419,15 +421,47 @@ void draw() {
     }
     rect (framerectX, framerectY, framerectwidth, framerectheight, butcorn);
 
+    //invincibility button
+    if (bounceoffback) {
+      fill (20, 255, 20);
+    } else {
+      fill (255, 20, 20);
+    }
+    rect (startrectX, startrectY, startrectwidth, startrectheight, butcorn);
+    fill (0);
+    textSize (height/9);
+    textAlign (CENTER, CENTER);
+    text ("INVINCIBLE", startrectX + startrectwidth/2, startrectY + startrectheight/2.5);
+
     //frame rate text
-    String frame = "AIMBOT";
+    String aimbottext = "AIMBOT";
     fill (0);
     textAlign (CENTER, CENTER);
     textSize (height/6);
-    text(frame, framerectX, framerectY, framerectwidth, framerectheight);
+    text(aimbottext, framerectX, framerectY, framerectwidth, framerectheight);
+
+    //tickrate buttons
+    fill(255);
+    rect (resleftX, restopY, resbutwidth, resbutheight, butcorn);
+    rect (resrightX, restopY, resbutwidth, resbutheight, butcorn);
+    rect (resleftX, resbottomY, resbutwidth, resbutheight, butcorn);
+    rect (resrightX, resbottomY, resbutwidth, resbutheight, butcorn);
+
+    fill (0);
+    textAlign (CENTER, CENTER);
+    textSize (height/17);
+
+    String threesixty = "30tick";
+    text(threesixty, resleftX, restopY, resbutwidth, resbutheight);
+    String seventwenty = "60tick";
+    text(seventwenty, resrightX, restopY, resbutwidth, resbutheight);
+    String teneighty = "120tick";
+    text(teneighty, resleftX, resbottomY, resbutwidth, resbutheight);
+    String fourteenforty = "240tick";
+    text(fourteenforty, resrightX, resbottomY, resbutwidth, resbutheight);
   }
 
-  ///////////////////////////////////////////////////////////////////////////////////////////////////////////   E N D   O F   M A I N   M E N U   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  ///////////////////////////////////////////////////////////////////////////////////////////////////////////   E N D   O F   M E N U S   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   //frame rate displayed if enabled
   if (framecounter) {
     fill(255);
@@ -492,8 +526,20 @@ void mouseReleased () {
     ballVY = startingballVY;
   }
 
+  //invincibility button
+  else if (cheatpage && mouseX >= startrectX && mouseX <= startrectX + startrectwidth && mouseY >= startrectY && mouseY <= startrectY + startrectheight) {
+    bounceoffback = !bounceoffback;
+  }
+  
+  //die button
+  if ((aimbot || bounceoffback) && !mainmenu && !cheatpage && !gameisover && mouseX >= dieX && mouseX <= dieX + diewidth && mouseY >= dieY && mouseY <=dieY + dieheight) {
+    gameisover = true;
+    mainmenu = false;
+    cheatpage = false;
+  }
+
   //size buttons
-  if (mainmenu) {
+  if (cheatpage) {
     if (mouseX >= resleftX && mouseX <= resleftX + resbutwidth && mouseY >= restopY && mouseY <= restopY + resbutheight) {
       framerate = 30;
       frameratechange = true;
@@ -509,3 +555,5 @@ void mouseReleased () {
     }
   }
 }
+
+

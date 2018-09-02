@@ -2,7 +2,6 @@
 
 //boolean variables
 boolean gameover;
-boolean randomballspawn;
 boolean bounceoffback;
 boolean gameisover;
 boolean framecounter;
@@ -135,7 +134,7 @@ void setup () {
   cheatY = restopY;
   cheatwidth = startrectwidth;
   cheatheight = startrectheight;
-  
+
   //info about die button
   dieX = width*7/8;
   dieY = height*3/12;
@@ -155,9 +154,6 @@ void setup () {
   //put true to enable main menu
   mainmenu = true;
 
-  //put true to randomise ball starting position
-  randomballspawn = true;
-
   //put true to let ball bounce off back wall (may be slightly glitchy)
   bounceoffback = false;
 
@@ -174,9 +170,7 @@ void setup () {
   score = 0;
 
   //randomise starting position of ball
-  if (randomballspawn) {
-    ballY = random (0, height - ballwidth);
-  }
+  ballY = random (0, height - ballwidth);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////   A C T I V E  ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -191,23 +185,17 @@ void draw() {
   fill (255);
   rect (ballX, ballY, ballwidth, ballwidth, ballcorner);
 
-  //move ball x-axis
+  //move ball x&y-axis
   ballX += ballVX;  
-
-  //move ball y-axis
   ballY += ballVY;
 
-  //bounce off top
-  if (ballY <= 0) { 
-    ballVY = abs(ballVY);
-  }  
-  //bounce off bottom
-  if (ballY + ballwidth -1 >= height) { 
-    ballVY = -abs(ballVY);
-  }  
+  //bounce off top or bottom
+  if (ballY <= 0 || ballY + ballwidth -1 >= height) {
+    ballVY = ballY <= 0 ? abs(ballVY) : -abs(ballVY);
+  }
 
   //bounce off left
-  if (ballX < width/6 + ballwidth) { 
+  if (ballX < oppaddleX + paddlewidth) { 
     ballVX = abs(ballVX);
   }  
   //if hits right wall, game over/bounce back/randomly respawn/respawn in middle
@@ -216,14 +204,9 @@ void draw() {
       ballVX = -abs(ballVX);
     } else if (gameover) {
       gameisover = true;
-    } else if (randomballspawn) {
+    } else {
       ballY = random (0, height - ballwidth);
       ballX = width/2;
-      ballVX = startingballVX;
-      ballVY = startingballVY;
-    } else {
-      ballX = width/2;
-      ballY = height/2;
       ballVX = startingballVX;
       ballVY = startingballVY;
     }
@@ -237,14 +220,9 @@ void draw() {
   //draw paddle
   rect (paddleX, paddleY, paddlewidth, paddleheight, ballcorner);
 
-  //move paddle up
-  if (mouseY < paddleY) {
-    paddleY = paddleY + -width/framerate/4;
-  }
-
-  //move paddle down
-  else if (mouseY > paddleY + paddleheight) {
-    paddleY = paddleY + width/framerate/4;
+  //move paddle up or down
+  if (mouseY < paddleY || mouseY > paddleY + paddleheight) {
+    paddleY = mouseY < paddleY ? paddleY + -width/framerate/4 : paddleY + width/framerate/4;
   }
 
   //bounce off paddle when in middle
@@ -281,14 +259,12 @@ void draw() {
   oppaddleY = ballY + ballwidth/2 - paddleheight/2;
 
   //make sure paddle does not leave screen
-  if (oppaddleY < 0) {
-    oppaddleY = 0;
-  } else if (oppaddleY + paddleheight > height) {
-    oppaddleY = height - paddleheight;
+  if (oppaddleY < 0 || oppaddleY + paddleheight > height) {
+    oppaddleY = oppaddleY < 0 ? 0 : height - paddleheight;
   }
 
   //draw opposition paddle
-  fill (255, 255, 255);
+  fill (255);
   rect (oppaddleX, oppaddleY, paddlewidth, paddleheight, ballcorner);
 
   //display score
@@ -303,16 +279,15 @@ void draw() {
     fill (255);
     text ("AIMBOT", width, height/6);
   }
-  
+
   //die button
   if (bounceoffback || aimbot) {
     fill (255);
     rect (dieX, dieY, diewidth, dieheight, butcorn);
-    String dietext = "CLICK TO DIE";
     fill (0);
     textAlign (CENTER, CENTER);
     textSize (height/32);
-    text(dietext, dieX, dieY, diewidth, dieheight);
+    text("CLICK TO DIE", dieX, dieY, diewidth, dieheight);
   }
 
   ballVX *= (1 + 0.0001*60/framerate);
@@ -344,11 +319,10 @@ void draw() {
     //main menu button
     fill (255);
     rect (framerectX, framerectY, framerectwidth, framerectheight, butcorn);
-    String frame = "MAIN MENU";
     fill (0);
     textAlign (CENTER, CENTER);
     textSize (height/11);
-    text(frame, framerectX, framerectY, framerectwidth, framerectheight);
+    text("MAIN MENU", framerectX, framerectY, framerectwidth, framerectheight);
   }
 
   ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////  M A I N   M E N U   S C R E E N  /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -361,6 +335,7 @@ void draw() {
     fill (255);
     text ("PONG", width/2, height/6);
     gameisover = false;
+    cheatpage = false;
 
     //start button
     fill (255);
@@ -378,11 +353,10 @@ void draw() {
     rect (framerectX, framerectY, framerectwidth, framerectheight, butcorn);
 
     //frame rate text
-    String frame = "SHOW FRAME RATE";
     fill (0);
     textAlign (CENTER, CENTER);
     textSize (height/14);
-    text(frame, framerectX, framerectY, framerectwidth, framerectheight);
+    text("SHOW FRAME RATE", framerectX, framerectY, framerectwidth, framerectheight);
 
     //cheats button
     fill (255);
@@ -407,11 +381,10 @@ void draw() {
     //cheats button
     fill (255);
     rect (cheatX, cheatY, cheatwidth, cheatheight, butcorn);
-    String mainmenufromcheatpage = "MAIN MENU";
     fill (0);
     textAlign (CENTER, CENTER);
     textSize (height/11);
-    text(mainmenufromcheatpage, cheatX, cheatY, cheatwidth, cheatheight);
+    text("MAIN MENU", cheatX, cheatY, cheatwidth, cheatheight);
 
     //aimbot colour changing rectangle
     if (aimbot) {
@@ -434,11 +407,10 @@ void draw() {
     text ("INVINCIBLE", startrectX + startrectwidth/2, startrectY + startrectheight/2.5);
 
     //frame rate text
-    String aimbottext = "AIMBOT";
     fill (0);
     textAlign (CENTER, CENTER);
     textSize (height/6);
-    text(aimbottext, framerectX, framerectY, framerectwidth, framerectheight);
+    text("AIMBOT", framerectX, framerectY, framerectwidth, framerectheight);
 
     //tickrate buttons
     fill(255);
@@ -447,18 +419,14 @@ void draw() {
     rect (resleftX, resbottomY, resbutwidth, resbutheight, butcorn);
     rect (resrightX, resbottomY, resbutwidth, resbutheight, butcorn);
 
+    //tick rate buttons text
     fill (0);
     textAlign (CENTER, CENTER);
-    textSize (height/17);
-
-    String threesixty = "30tick";
-    text(threesixty, resleftX, restopY, resbutwidth, resbutheight);
-    String seventwenty = "60tick";
-    text(seventwenty, resrightX, restopY, resbutwidth, resbutheight);
-    String teneighty = "120tick";
-    text(teneighty, resleftX, resbottomY, resbutwidth, resbutheight);
-    String fourteenforty = "240tick";
-    text(fourteenforty, resrightX, resbottomY, resbutwidth, resbutheight);
+    textSize (height/17);    
+    text("30tick", resleftX, restopY, resbutwidth, resbutheight);
+    text("60tick", resrightX, restopY, resbutwidth, resbutheight);
+    text("120tick", resleftX, resbottomY, resbutwidth, resbutheight);
+    text("240tick", resrightX, resbottomY, resbutwidth, resbutheight);
   }
 
   ///////////////////////////////////////////////////////////////////////////////////////////////////////////   E N D   O F   M E N U S   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -484,58 +452,40 @@ void draw() {
 //stuff that happens when mouse is depressed
 void mouseReleased () {
 
-  //frame rate button
-  if (mainmenu && mouseX >= framerectX && mouseX <= framerectX + framerectwidth && mouseY >= framerectY && mouseY <= framerectY + framerectheight) {
-    framecounter = !framecounter;
-  } else if (cheatpage && mouseX >= framerectX && mouseX <= framerectX + framerectwidth && mouseY >= framerectY && mouseY <= framerectY + framerectheight) {
-    aimbot = !aimbot;
+  //framerate/aimbot/mainmenu button
+  if ((mainmenu || cheatpage || gameisover) && mouseX >= framerectX && mouseX <= framerectX + framerectwidth && mouseY >= framerectY && mouseY <= framerectY + framerectheight) {
+    framecounter = mainmenu ? !framecounter : framecounter;
+    aimbot = cheatpage ? !aimbot : aimbot;
+    if (gameisover) {
+      gameisover = false;
+      mainmenu = true;
+      cheatpage = false;
+    }
   }
 
   //cheats/main menu button
-  if (mainmenu && mouseX >= cheatX && mouseX <= cheatX + cheatwidth && mouseY >= cheatY && mouseY <= cheatY + cheatheight) {
-    cheatpage = true;
-    mainmenu = false;
-    gameisover = false;
-  } else if (cheatpage && mouseX >= cheatX && mouseX <= cheatX + cheatwidth && mouseY >= cheatY && mouseY <= cheatY + cheatheight) {
-    cheatpage = false;
-    mainmenu = true;
-    gameisover = false;
-  }
-
-  //main menu button
-  if (gameisover && mouseX >= framerectX && mouseX <= framerectX + framerectwidth && mouseY >= framerectY && mouseY <= framerectY + framerectheight) {
-    gameisover = false;
-    mainmenu = true;
-    cheatpage = false;
+  if ((mainmenu || cheatpage) && mouseX >= cheatX && mouseX <= cheatX + cheatwidth && mouseY >= cheatY && mouseY <= cheatY + cheatheight) {
+    mainmenu = mainmenu ? false : true;
+    cheatpage = cheatpage ? false : true;
   }
 
   //start button main menu and game over
-  else if ((mainmenu || gameisover) && mouseX >= startrectX && mouseX <= startrectX + startrectwidth && mouseY >= startrectY && mouseY <= startrectY + startrectheight) {
-    mainmenu = false;
-    gameisover = false;
-    cheatpage = false;
-    score = 0;
-    if (randomballspawn) {
+  else if (mouseX >= startrectX && mouseX <= startrectX + startrectwidth && mouseY >= startrectY && mouseY <= startrectY + startrectheight) {
+    if (mainmenu || gameisover) {
+      mainmenu = false;
+      gameisover = false;
+      score = 0;
       ballY = random (0, height - ballwidth);
       ballX = width/2;
-    } else {
-      ballX = width/2;
-      ballY = height/2;
+      ballVX = startingballVX;
+      ballVY = startingballVY;
     }
-    ballVX = startingballVX;
-    ballVY = startingballVY;
+    bounceoffback = cheatpage ? !bounceoffback : bounceoffback;
   }
 
-  //invincibility button
-  else if (cheatpage && mouseX >= startrectX && mouseX <= startrectX + startrectwidth && mouseY >= startrectY && mouseY <= startrectY + startrectheight) {
-    bounceoffback = !bounceoffback;
-  }
-  
   //die button
   if ((aimbot || bounceoffback) && !mainmenu && !cheatpage && !gameisover && mouseX >= dieX && mouseX <= dieX + diewidth && mouseY >= dieY && mouseY <=dieY + dieheight) {
     gameisover = true;
-    mainmenu = false;
-    cheatpage = false;
   }
 
   //size buttons
@@ -555,5 +505,3 @@ void mouseReleased () {
     }
   }
 }
-
-
